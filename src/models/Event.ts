@@ -42,25 +42,25 @@ const eventSchema = new Schema<IEvent>(
       required: [true, "Event venue is required"],
       trim: true,
     },
-    date: {
-      type: String,
-      required: true,
-    },
+    // date: {
+    //   type: String,
+    //   required: true,
+    // },
     time: {
       type: String, // Store as 'HH:mm'
       required: true,
     },
 
-    // date: {
-    //   type: Date,
-    //   required: [true, 'Event date is required'],
-    //   validate: {
-    //     validator: function(date: Date) {
-    //       return date > new Date();
-    //     },
-    //     message: 'Event date must be in the future'
-    //   }
-    // },
+    date: {
+      type: Date,
+      required: [true, "Event date is required"],
+      validate: {
+        validator: function (date: Date) {
+          return date > new Date();
+        },
+        message: "Event date must be in the future",
+      },
+    },
     // time: {
     //   type: String,
     //   required: [true, 'Event time is required'],

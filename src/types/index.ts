@@ -56,6 +56,7 @@ export interface QueryParams {
   category?: string;
   location?: string;
   date?: string;
+  time?: string;
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";

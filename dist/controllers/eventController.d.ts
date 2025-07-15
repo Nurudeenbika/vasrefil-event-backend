@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { AuthRequest } from '../types';
+import { Request, Response } from "express";
+import { AuthRequest } from "../types";
 export declare const getEvents: (req: Request, res: Response) => Promise<void>;
 export declare const getEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const createEvent: (req: AuthRequest, res: Response) => Promise<void>;

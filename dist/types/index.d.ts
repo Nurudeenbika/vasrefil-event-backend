@@ -17,7 +17,7 @@ export interface IEvent extends Document {
     category: string;
     location: string;
     venue: string;
-    date: string;
+    date: Date;
     time: string;
     price: number;
     totalSeats: number;
@@ -51,6 +51,7 @@ export interface QueryParams {
     category?: string;
     location?: string;
     date?: string;
+    time?: string;
     search?: string;
     sortBy?: string;
     sortOrder?: "asc" | "desc";

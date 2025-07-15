@@ -38,13 +38,16 @@ exports.eventSchema = joi_1.default.object({
         .required(),
     location: joi_1.default.string().required(),
     venue: joi_1.default.string().required(),
-    date: joi_1.default.date().greater("now").required(),
+    //date: Joi.date().greater("now").required(),
+    date: joi_1.default.string()
+        .pattern(/^\d{4}-\d{2}-\d{2}$/) // YYYY-MM-DD
+        .required(),
     time: joi_1.default.string()
         .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
         .required(),
     price: joi_1.default.number().min(0).required(),
     totalSeats: joi_1.default.number().min(1).required(),
-    availableSeats: joi_1.default.number().min(0).required(),
+    availableSeats: joi_1.default.number().min(0).optional(),
     imageUrl: joi_1.default.string().uri().optional(),
 });
 // export const bookingSchema = Joi.object({

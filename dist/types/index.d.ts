@@ -17,7 +17,7 @@ export interface IEvent extends Document {
     category: string;
     location: string;
     venue: string;
-    date: Date;
+    date: string;
     time: string;
     price: number;
     totalSeats: number;

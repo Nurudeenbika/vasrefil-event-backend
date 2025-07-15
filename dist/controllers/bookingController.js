@@ -51,7 +51,7 @@ const createBooking = async (req, res) => {
             });
         }
         // Check if event is in the future
-        if (event.date < new Date()) {
+        if (new Date(event.date) < new Date()) {
             return res.status(400).json({
                 success: false,
                 message: "Cannot book tickets for past events",

@@ -12,7 +12,7 @@ const seedData = async () => {
     // Connect to MongoDB
     await mongoose.connect(
       process.env.MONGODB_URI ||
-        "mongodb+srv://nurudeenhassan:nurudeenhassan@cluster0.ri4ry38.mongodb.net/event-bookings?retryWrites=true&w=majority&appName=Cluster0"
+        "mongodb+srv://nurudeenhassan:Nurubika@cluster0.ri4ry38.mongodb.net/event-bookings?retryWrites=true&w=majority&appName=Cluster0"
     );
     console.log("Connected to MongoDB");
 

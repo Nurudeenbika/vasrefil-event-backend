@@ -48,13 +48,16 @@ export const eventSchema = Joi.object({
     .required(),
   location: Joi.string().required(),
   venue: Joi.string().required(),
-  date: Joi.date().greater("now").required(),
+  //date: Joi.date().greater("now").required(),
+  date: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/) // YYYY-MM-DD
+    .required(),
   time: Joi.string()
     .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
     .required(),
   price: Joi.number().min(0).required(),
   totalSeats: Joi.number().min(1).required(),
-  availableSeats: Joi.number().min(0).required(),
+  availableSeats: Joi.number().min(0).optional(),
   imageUrl: Joi.string().uri().optional(),
 });
 

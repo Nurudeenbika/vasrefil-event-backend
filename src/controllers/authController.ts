@@ -3,7 +3,7 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import User from "../models/User";
 import { AuthRequest } from "../types";
 
-const generateToken = (id: string): string => {
+export const generateToken = (id: string): string => {
   const secret = process.env.JWT_SECRET || "fallback-secret";
   const options: SignOptions = {
     expiresIn: (process.env.JWT_EXPIRE || "30d") as SignOptions["expiresIn"],

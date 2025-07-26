@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Event from "../models/Event";
 import { AuthRequest, QueryParams } from "../types";
+import mongoose from "mongoose"; // Import mongoose for ObjectId validation
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
@@ -77,6 +78,14 @@ export const getEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    // Validate if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid event ID format",
+      });
+    }
+
     const event = await Event.findById(id).populate("createdBy", "name email");
 
     if (!event) {
@@ -91,6 +100,7 @@ export const getEvent = async (req: Request, res: Response) => {
       data: { event },
     });
   } catch (error) {
+    // Catch any other potential errors during fetching (e.g., database connection issues)
     res.status(500).json({
       success: false,
       message: "Error fetching event",
@@ -107,6 +117,7 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
     };
 
     const event = await Event.create(eventData);
+    // Populate createdBy for the response to include user details
     await event.populate("createdBy", "name email");
 
     res.status(201).json({
@@ -114,7 +125,16 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       message: "Event created successfully",
       data: { event },
     });
-  } catch (error) {
+  } catch (error: any) {
+    // Explicitly type error as 'any' or 'MongooseError' for better handling
+    // Handle Mongoose validation errors specifically
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: error.message, // Mongoose validation error message
+        errors: error.errors, // Detailed validation errors
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Error creating event",
@@ -126,6 +146,14 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 export const updateEvent = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Validate if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid event ID format",
+      });
+    }
 
     const event = await Event.findById(id);
 
@@ -143,7 +171,7 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
     ) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this event",
+        message: "Access denied. Insufficient permissions.", // Updated message
       });
     }
 
@@ -158,7 +186,16 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
       message: "Event updated successfully",
       data: { event: updatedEvent },
     });
-  } catch (error) {
+  } catch (error: any) {
+    // Explicitly type error as 'any' or 'MongooseError' for better handling
+    // Handle Mongoose validation errors specifically
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: error.message, // Mongoose validation error message
+        errors: error.errors, // Detailed validation errors
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Error updating event",
@@ -170,6 +207,14 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
 export const deleteEvent = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Validate if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid event ID format",
+      });
+    }
 
     const event = await Event.findById(id);
 
@@ -187,7 +232,7 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
     ) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to delete this event",
+        message: "Access denied. Insufficient permissions.", // Updated message
       });
     }
 

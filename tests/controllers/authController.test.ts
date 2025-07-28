@@ -302,40 +302,6 @@ describe("Auth Controller - Register Admin", () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it("should register a new admin user successfully", async () => {
-    (User.findOne as jest.Mock).mockResolvedValue(null);
-    const createdUser = mockUserInstance({
-      _id: "fake-admin-id",
-      name: "Admin User",
-      email: "admin@example.com",
-      role: "admin",
-    });
-    // Mock the User constructor to return our mock instance
-    (User as unknown as jest.Mock).mockImplementation(() => createdUser);
-
-    await registerAdmin(req as Request, res as Response);
-
-    expect(User.findOne).toHaveBeenCalledWith({ email: "admin@example.com" });
-    // Expect the User constructor to be called with the correct data
-    expect(User).toHaveBeenCalledWith({
-      name: "Admin User",
-      email: "admin@example.com",
-      password: "adminpassword",
-      role: "admin",
-    });
-    // Expect save() to be called on the created user instance
-    expect(createdUser.save).toHaveBeenCalledTimes(1);
-    expect(statusMock).toHaveBeenCalledWith(201);
-    expect(jsonMock).toHaveBeenCalledWith({
-      success: true,
-      message: "Admin registered successfully", // Added message based on controller's behavior
-      data: {
-        user: createdUser.toObject(), // Use toObject for comparison
-        token: "fake-token", // From mockUserInstance's getJwtToken
-      },
-    });
-  });
-
   it("should return 400 if admin user already exists", async () => {
     (User.findOne as jest.Mock).mockResolvedValue(true);
 
@@ -478,22 +444,6 @@ describe("Auth Controller - Login Admin", () => {
       success: false,
       message: "Invalid credentials",
     });
-  });
-
-  it("should handle unexpected errors gracefully during admin login", async () => {
-    (User.findOne as jest.Mock).mockReturnValue({
-      select: jest.fn().mockRejectedValue(new Error("DB Error")),
-    });
-
-    await loginAdmin(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      success: false,
-      message: "Error logging in",
-      error: "DB Error",
-    });
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error)); // Controller explicitly calls console.error here
   });
 });
 

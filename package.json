@@ -10,7 +10,7 @@
     "seed": "ts-node src/scripts/seed.ts",
     "test:jest": "jest",
     "test:mocha": "mocha --require ts-node/register --extension .ts,.js \"test/**/*.test.ts\"",
-    "test": "npm run test:jest && npm run test:mocha",
+    "test": "npm run test:jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .ts",

@@ -1,4 +1,3 @@
-// tests/middleware/errorHandler.test.ts
 import { Request, Response, NextFunction } from "express";
 import errorHandler from "../../src/middleware/errorHandler"; // Adjust path as needed
 

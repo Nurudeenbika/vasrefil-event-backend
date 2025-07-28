@@ -1,4 +1,3 @@
-// tests/controllers/eventController.test.ts
 import { MongoMemoryServer } from "mongodb-memory-server";
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import request from "supertest";

@@ -1,4 +1,3 @@
-// tests/controllers/dashboardController.unit.test.ts
 import { Request, Response, NextFunction } from "express";
 import {
   getDashboardStats,

@@ -72,7 +72,8 @@ describe("Event Controller", () => {
     await Event.deleteMany({});
     await Booking.deleteMany({}); // Assuming you have a Booking model
 
-    // Create test users
+    // Create an initial test event for GET, PUT, DELETE tests
+    // This event's properties will be modified by PUT tests, and then checked by GET locations
     adminUser = await User.create({
       name: "Admin User",
       email: "admin@test.com",
@@ -96,12 +97,11 @@ describe("Event Controller", () => {
     futureDate.setDate(futureDate.getDate() + 7); // Set to 7 days from now
     const futureDateString = futureDate.toISOString().split("T")[0];
 
-    // Create an initial test event for GET, PUT, DELETE tests
     testEvent = await Event.create({
       title: "Test Event for CRUD",
       description: "This is a comprehensive description for a test event.", // Ensure minLength
       category: "conference", // Must be a valid category from validCategories
-      location: "Test Location",
+      location: "Initial Test Location", // Original location
       venue: "Test Venue",
       date: futureDateString,
       time: "18:00",
@@ -120,6 +120,7 @@ describe("Event Controller", () => {
 
   afterEach(async () => {
     // Clean up events added during tests, but keep the initial testEvent
+    // Note: testEvent's properties might have been modified by PUT tests
     await Event.deleteMany({ _id: { $ne: testEvent._id } });
     // Also clean up users created during tests (e.g., 'Another User')
     await User.deleteMany({ _id: { $nin: [adminUser._id, regularUser._id] } });
@@ -238,14 +239,14 @@ describe("Event Controller", () => {
     it("should filter events by location (case-insensitive)", async () => {
       const res = await request(app)
         .get("/api/events")
-        .query({ location: "test location" }) // Test case-insensitive
+        .query({ location: "initial test location" }) // Test case-insensitive, matching testEvent's initial location
         .expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.events.length).toBeGreaterThan(0);
       expect(
         res.body.data.events.every((e: any) =>
-          e.location.toLowerCase().includes("test location")
+          e.location.toLowerCase().includes("initial test location")
         )
       ).toBe(true);
     });
@@ -446,7 +447,7 @@ describe("Event Controller", () => {
       title: "Updated Event Title",
       description: "Updated description with more details for the event.", // Ensure minLength
       category: "conference", // Must be a valid category from your enum
-      location: "Updated Location",
+      location: "Updated Location", // This will change testEvent's location
       venue: "Updated Venue",
       date: new Date(new Date().setDate(new Date().getDate() + 15))
         .toISOString()
@@ -472,6 +473,8 @@ describe("Event Controller", () => {
 
       const updatedEventInDb = await Event.findById(testEvent._id);
       expect(updatedEventInDb?.title).toBe(updatedData.title);
+      // Update the global testEvent object to reflect changes for subsequent tests
+      Object.assign(testEvent, updatedEventInDb?.toObject());
     });
 
     it("should update an event as the creator (regular user)", async () => {
@@ -731,7 +734,7 @@ describe("Event Controller", () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.categories).toBeInstanceOf(Array);
-      expect(res.body.data.categories).toContain("conference"); // From testEvent
+      expect(res.body.data.categories).toContain("conference"); // From testEvent (original category)
       expect(res.body.data.categories).toContain("sports");
       expect(res.body.data.categories).toContain("networking");
       expect(res.body.data.categories.length).toBeGreaterThanOrEqual(3);
@@ -792,7 +795,8 @@ describe("Event Controller", () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.locations).toBeInstanceOf(Array);
-      expect(res.body.data.locations).toContain("Test Location"); // From initial testEvent
+      // testEvent's location would have been updated to "Updated Location" by a previous PUT test
+      expect(res.body.data.locations).toContain("Updated Location");
       expect(res.body.data.locations).toContain("New York");
       expect(res.body.data.locations).toContain("London");
       expect(res.body.data.locations.length).toBeGreaterThanOrEqual(3);

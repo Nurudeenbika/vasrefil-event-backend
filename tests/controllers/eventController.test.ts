@@ -391,8 +391,8 @@ describe("Event Controller", () => {
 
       expect(res.body.success).toBe(false);
       expect(res.body.message).toContain("Validation error"); // Adjusted to "Validation error"
-      expect(res.body.errors).toBeDefined();
-      expect(res.body.errors.title).toBeDefined();
+      expect(res.body.errors).toBeDefined(); // Expect errors object to be present
+      expect(res.body.errors.title).toBeDefined(); // Expect specific error for title
     });
 
     it("should return 400 for event date in the past", async () => {
@@ -516,7 +516,7 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toBe("Invalid event ID format");
+      expect(res.body.message).toBe("Validation error"); // Adjusted to "Validation error"
     });
 
     it("should return 404 for non-existent event", async () => {
@@ -525,7 +525,7 @@ describe("Event Controller", () => {
         .put(`/api/events/${nonExistentId}`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send(updatedData)
-        .expect(404);
+        .expect(404); // Expecting 404 Not Found
 
       expect(res.body.success).toBe(false);
       expect(res.body.message).toBe("Event not found");

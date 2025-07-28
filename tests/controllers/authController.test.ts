@@ -9,6 +9,7 @@ import User from "../../src/models/User";
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { AuthRequest } from "../../src/types"; // Import AuthRequest type
+import mongoose from "mongoose"; // Import mongoose for ObjectId
 
 // Mock the entire User module and jsonwebtoken
 jest.mock("../../src/models/User", () => {
@@ -16,26 +17,61 @@ jest.mock("../../src/models/User", () => {
   return {
     ...actual,
     findOne: jest.fn(),
-    create: jest.fn(),
+    create: jest.fn(), // Keep create mock for register controller
     findById: jest.fn(),
-    // Add any other methods you need to mock
+    // Mock the constructor for `new User()` calls
+    // This mock will be overridden in specific tests if needed
+    default: jest.fn().mockImplementation((data) => {
+      // Default implementation for new User()
+      const instance = actual.default(data); // Call actual constructor for schema validation etc.
+      instance.save = jest.fn().mockResolvedValue(instance); // Mock save on the instance
+      return instance;
+    }),
   };
 });
 jest.mock("jsonwebtoken");
 
 // Helper to mock a user instance with a comparePassword method
-const mockUserInstance = (userData: any, isPasswordMatch: boolean = true) => ({
-  ...userData,
-  comparePassword: jest.fn().mockResolvedValue(isPasswordMatch),
-  populate: jest.fn().mockReturnThis(), // Mock populate for createEvent
-  save: jest.fn().mockResolvedValue(userData), // Mock save for registerAdmin
-});
+// This mock now includes `getJwtToken` and `toObject` to simulate a Mongoose document
+const mockUserInstance = (userData: any, isPasswordMatch: boolean = true) => {
+  const user = {
+    ...userData,
+    // Ensure _id is a string or ObjectId for consistency in tests
+    _id: userData._id || new mongoose.Types.ObjectId().toHexString(),
+    comparePassword: jest.fn().mockResolvedValue(isPasswordMatch),
+    // Mock getJwtToken method that your User model might have
+    getJwtToken: jest.fn().mockReturnValue("fake-token"),
+    // Mock populate and save if they are called on the user instance
+    populate: jest.fn().mockReturnThis(),
+    save: jest.fn().mockResolvedValue(userData),
+  };
+
+  // Add toObject that returns a plain object representation, mimicking Mongoose's behavior
+  user.toObject = jest.fn().mockImplementation(function (this: any) {
+    // Explicitly type 'this'
+    const obj = { ...this }; // Copy properties from the mock user instance
+    // Remove sensitive fields and mock methods from the returned object
+    delete obj.password;
+    obj.id = obj._id; // Map _id to id as commonly done in responses
+    delete obj._id;
+    // Delete mock methods to ensure the returned object is clean for assertions
+    delete obj.comparePassword;
+    delete obj.getJwtToken;
+    delete obj.populate;
+    delete obj.save;
+    delete obj.toObject; // Prevent infinite recursion if toObject calls itself
+    return obj;
+  });
+
+  return user;
+};
 
 describe("Auth Controller - Register", () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jsonMock = jest.fn();
@@ -53,6 +89,12 @@ describe("Auth Controller - Register", () => {
     } as unknown as Response;
 
     jest.clearAllMocks();
+    // Spy on console.error, but don't suppress it globally for this suite unless needed by specific tests
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it("should register a new user successfully", async () => {
@@ -80,12 +122,7 @@ describe("Auth Controller - Register", () => {
       success: true,
       message: "User registered successfully",
       data: {
-        user: {
-          id: "fake-id",
-          name: "Test User",
-          email: "test@example.com",
-          role: "user",
-        },
+        user: createdUser.toObject(), // Use toObject for comparison
         token: "fake-token",
       },
     });
@@ -114,6 +151,7 @@ describe("Auth Controller - Register", () => {
       message: "Error registering user",
       error: "DB Error",
     });
+    // Controller does NOT call console.error in this catch block, so no assertion here
   });
 });
 
@@ -122,9 +160,12 @@ describe("Auth Controller - Login", () => {
   let res: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jsonMock = jest.fn();
+    // For login, the controller calls res.json directly for success, not res.status().json()
+    // For error, it calls res.status().json()
     statusMock = jest.fn(() => ({ json: jsonMock }));
     req = {
       body: {
@@ -133,46 +174,46 @@ describe("Auth Controller - Login", () => {
       },
     };
     res = {
-      status: statusMock,
+      json: jsonMock, // Direct mock for res.json
+      status: statusMock, // For when res.status is explicitly called (e.g., errors)
     } as unknown as Response;
 
     jest.clearAllMocks();
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  // it("should log in a user successfully", async () => {
-  //   const user = mockUserInstance({
-  //     _id: "fake-id",
-  //     name: "Test User",
-  //     email: "test@example.com",
-  //     role: "user",
-  //     comparePassword: jest.fn().mockResolvedValue(true),
-  //   });
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
 
-  //   const mockSelect = jest.fn().mockResolvedValue(user);
-  //   (User.findOne as jest.Mock).mockReturnValue({
-  //     select: mockSelect, // Mock select for password
-  //   });
-  //   (jwt.sign as jest.Mock).mockReturnValue("fake-token");
+  it("should log in a user successfully", async () => {
+    const user = mockUserInstance({
+      _id: "fake-id",
+      name: "Test User",
+      email: "test@example.com",
+      role: "user",
+    });
 
-  //   await login(req as Request, res as Response);
+    const mockSelect = jest.fn().mockResolvedValue(user);
+    (User.findOne as jest.Mock).mockReturnValue({
+      select: mockSelect, // Mock select for password
+    });
+    (jwt.sign as jest.Mock).mockReturnValue("fake-token");
 
-  //   expect(User.findOne).toHaveBeenCalledWith({ email: "test@example.com" });
-  //   expect(user.comparePassword).toHaveBeenCalledWith("password123");
-  //   expect(statusMock).toHaveBeenCalledWith(200);
-  //   expect(jsonMock).toHaveBeenCalledWith({
-  //     success: true,
-  //     message: "Login successful",
-  //     data: {
-  //       user: {
-  //         id: "fake-id",
-  //         name: "Test User",
-  //         email: "test@example.com",
-  //         role: "user",
-  //       },
-  //       token: "fake-token",
-  //     },
-  //   });
-  // });
+    await login(req as Request, res as Response);
+
+    expect(User.findOne).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(user.comparePassword).toHaveBeenCalledWith("password123");
+    // Controller calls res.json directly, which defaults to 200, so no statusMock expectation here
+    expect(jsonMock).toHaveBeenCalledWith({
+      success: true,
+      message: "Login successful",
+      data: {
+        user: user.toObject(), // Use toObject for comparison
+        token: "fake-token",
+      },
+    });
+  });
 
   it("should return 401 for invalid credentials (user not found)", async () => {
     (User.findOne as jest.Mock).mockReturnValue({
@@ -226,6 +267,7 @@ describe("Auth Controller - Login", () => {
       message: "Error logging in",
       error: "DB Error",
     });
+    // Controller does NOT call console.error in this catch block, so no assertion here
   });
 });
 
@@ -234,6 +276,7 @@ describe("Auth Controller - Register Admin", () => {
   let res: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jsonMock = jest.fn();
@@ -250,6 +293,47 @@ describe("Auth Controller - Register Admin", () => {
     } as unknown as Response;
 
     jest.clearAllMocks();
+    // Suppress console.error output for this test suite
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Restore original console.error after each test
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("should register a new admin user successfully", async () => {
+    (User.findOne as jest.Mock).mockResolvedValue(null);
+    const createdUser = mockUserInstance({
+      _id: "fake-admin-id",
+      name: "Admin User",
+      email: "admin@example.com",
+      role: "admin",
+    });
+    // Mock the User constructor to return our mock instance
+    (User as unknown as jest.Mock).mockImplementation(() => createdUser);
+
+    await registerAdmin(req as Request, res as Response);
+
+    expect(User.findOne).toHaveBeenCalledWith({ email: "admin@example.com" });
+    // Expect the User constructor to be called with the correct data
+    expect(User).toHaveBeenCalledWith({
+      name: "Admin User",
+      email: "admin@example.com",
+      password: "adminpassword",
+      role: "admin",
+    });
+    // Expect save() to be called on the created user instance
+    expect(createdUser.save).toHaveBeenCalledTimes(1);
+    expect(statusMock).toHaveBeenCalledWith(201);
+    expect(jsonMock).toHaveBeenCalledWith({
+      success: true,
+      message: "Admin registered successfully", // Added message based on controller's behavior
+      data: {
+        user: createdUser.toObject(), // Use toObject for comparison
+        token: "fake-token", // From mockUserInstance's getJwtToken
+      },
+    });
   });
 
   it("should return 400 if admin user already exists", async () => {
@@ -265,6 +349,7 @@ describe("Auth Controller - Register Admin", () => {
   });
 
   it("should handle unexpected errors gracefully during admin registration", async () => {
+    // Mock findOne to reject, triggering the catch block in the controller
     (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
 
     await registerAdmin(req as Request, res as Response);
@@ -275,6 +360,7 @@ describe("Auth Controller - Register Admin", () => {
       message: "Error registering admin",
       error: "DB Error",
     });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error)); // Controller explicitly calls console.error here
   });
 });
 
@@ -283,6 +369,7 @@ describe("Auth Controller - Login Admin", () => {
   let res: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jsonMock = jest.fn();
@@ -294,42 +381,46 @@ describe("Auth Controller - Login Admin", () => {
       },
     };
     res = {
-      status: statusMock,
+      json: jsonMock, // Direct mock for res.json
+      status: statusMock, // For when res.status is explicitly called (e.g., errors)
     } as unknown as Response;
 
     jest.clearAllMocks();
+    // Suppress console.error output for this test suite
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  // it("should log in an admin user successfully", async () => {
-  //   const adminUser = mockUserInstance({
-  //     _id: "fake-admin-id",
-  //     email: "admin@example.com",
-  //     role: "admin",
-  //   });
-  //   (User.findOne as jest.Mock).mockReturnValue({
-  //     select: jest.fn().mockResolvedValue(adminUser),
-  //   });
-  //   (jwt.sign as jest.Mock).mockReturnValue("fake-admin-token");
+  afterEach(() => {
+    // Restore original console.error after each test
+    consoleErrorSpy.mockRestore();
+  });
 
-  //   await loginAdmin(req as Request, res as Response);
+  it("should log in an admin user successfully", async () => {
+    const adminUser = mockUserInstance({
+      _id: "fake-admin-id",
+      name: "Admin User",
+      email: "admin@example.com",
+      role: "admin",
+    });
+    (User.findOne as jest.Mock).mockReturnValue({
+      select: jest.fn().mockResolvedValue(adminUser),
+    });
+    (jwt.sign as jest.Mock).mockReturnValue("fake-admin-token");
 
-  //   expect(User.findOne).toHaveBeenCalledWith({ email: "admin@example.com" });
-  //   expect(adminUser.comparePassword).toHaveBeenCalledWith("adminpassword");
-  //   expect(statusMock).toHaveBeenCalledWith(200);
-  //   expect(jsonMock).toHaveBeenCalledWith({
-  //     success: true,
-  //     message: "Login successful",
-  //     data: {
-  //       user: {
-  //         id: "fake-admin-id",
-  //         name: "Admin User",
-  //         email: "admin@example.com",
-  //         role: "admin",
-  //       },
-  //       token: "fake-admin-token",
-  //     },
-  //   });
-  // });
+    await loginAdmin(req as Request, res as Response);
+
+    expect(User.findOne).toHaveBeenCalledWith({ email: "admin@example.com" });
+    expect(adminUser.comparePassword).toHaveBeenCalledWith("adminpassword");
+    // Controller calls res.json directly, which defaults to 200, so no statusMock expectation here
+    expect(jsonMock).toHaveBeenCalledWith({
+      success: true,
+      message: "Login successful",
+      data: {
+        user: adminUser.toObject(), // Use toObject for comparison
+        token: "fake-admin-token",
+      },
+    });
+  });
 
   it("should return 401 for invalid credentials (user not found)", async () => {
     (User.findOne as jest.Mock).mockReturnValue({
@@ -402,6 +493,7 @@ describe("Auth Controller - Login Admin", () => {
       message: "Error logging in",
       error: "DB Error",
     });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error)); // Controller explicitly calls console.error here
   });
 });
 
@@ -410,6 +502,7 @@ describe("Auth Controller - Get Profile", () => {
   let res: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jsonMock = jest.fn();
@@ -422,39 +515,41 @@ describe("Auth Controller - Get Profile", () => {
       },
     };
     res = {
-      status: statusMock,
+      json: jsonMock, // Direct mock for res.json
+      status: statusMock, // For when res.status is explicitly called (e.g., errors)
     } as unknown as Response;
 
     jest.clearAllMocks();
+    // Suppress console.error output for this test suite
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  // it("should return user profile successfully", async () => {
-  //   const userProfile = {
-  //     _id: "authenticated-user-id",
-  //     name: "Authenticated User",
-  //     email: "auth@example.com",
-  //     role: "user",
-  //     createdAt: new Date(),
-  //   };
-  //   (User.findById as jest.Mock).mockResolvedValue(userProfile);
+  afterEach(() => {
+    // Restore original console.error after each test
+    consoleErrorSpy.mockRestore();
+  });
 
-  //   await getProfile(req as AuthRequest, res as Response);
+  it("should return user profile successfully", async () => {
+    const userProfile = mockUserInstance({
+      _id: "authenticated-user-id",
+      name: "Authenticated User",
+      email: "auth@example.com",
+      role: "user",
+      createdAt: new Date(),
+    });
+    (User.findById as jest.Mock).mockResolvedValue(userProfile);
 
-  //   expect(User.findById).toHaveBeenCalledWith("authenticated-user-id");
-  //   expect(statusMock).toHaveBeenCalledWith(200);
-  //   expect(jsonMock).toHaveBeenCalledWith({
-  //     success: true,
-  //     data: {
-  //       user: {
-  //         id: userProfile._id,
-  //         name: userProfile.name,
-  //         email: userProfile.email,
-  //         role: userProfile.role,
-  //         createdAt: userProfile.createdAt,
-  //       },
-  //     },
-  //   });
-  // });
+    await getProfile(req as AuthRequest, res as Response);
+
+    expect(User.findById).toHaveBeenCalledWith("authenticated-user-id");
+    // Controller calls res.json directly, which defaults to 200, so no statusMock expectation here
+    expect(jsonMock).toHaveBeenCalledWith({
+      success: true,
+      data: {
+        user: userProfile.toObject(), // Use toObject to get the plain object
+      },
+    });
+  });
 
   it("should return 404 if user not found", async () => {
     (User.findById as jest.Mock).mockResolvedValue(null);
@@ -480,5 +575,6 @@ describe("Auth Controller - Get Profile", () => {
       message: "Error fetching profile",
       error: "DB Error",
     });
+    // Controller does NOT call console.error in this catch block, so no assertion here
   });
 });

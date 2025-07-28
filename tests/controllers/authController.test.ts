@@ -252,44 +252,6 @@ describe("Auth Controller - Register Admin", () => {
     jest.clearAllMocks();
   });
 
-  // it("should register a new admin user successfully", async () => {
-  //   (User.findOne as jest.Mock).mockResolvedValue(null);
-  //   const createdAdminUser = mockUserInstance({
-  //     _id: "fake-admin-id",
-  //     name: "Admin User",
-  //     email: "admin@example.com",
-  //     role: "admin",
-  //   });
-  //   // Mock the constructor and save method for `new User()`
-  //   (User.create as jest.Mock).mockResolvedValue(createdAdminUser);
-  //   //(User as unknown as jest.Mock).mockImplementation(() => createdAdminUser);
-  //   (jwt.sign as jest.Mock).mockReturnValue("fake-admin-token");
-
-  //   await registerAdmin(req as Request, res as Response);
-
-  //   expect(User.findOne).toHaveBeenCalledWith({ email: "admin@example.com" });
-  //   expect(User).toHaveBeenCalledWith({
-  //     name: "Admin User",
-  //     email: "admin@example.com",
-  //     password: "adminpassword",
-  //     role: "admin",
-  //   });
-  //   expect(createdAdminUser.save).toHaveBeenCalled();
-  //   expect(statusMock).toHaveBeenCalledWith(201);
-  //   expect(jsonMock).toHaveBeenCalledWith({
-  //     success: true,
-  //     data: {
-  //       user: {
-  //         id: "fake-admin-id",
-  //         name: "Admin User",
-  //         email: "admin@example.com",
-  //         role: "admin",
-  //       },
-  //       token: "fake-admin-token",
-  //     },
-  //   });
-  // });
-
   it("should return 400 if admin user already exists", async () => {
     (User.findOne as jest.Mock).mockResolvedValue(true);
 

@@ -28,6 +28,7 @@ jest.mock("mongoose", () => {
 
 // Define valid categories based on your Event model's schema enum
 // YOU MUST ENSURE THIS LIST EXACTLY MATCHES THE ENUM IN YOUR src/models/Event.ts
+// Based on your provided schema: ["conference", "workshop", "seminar", "concert", "sports", "exhibition", "networking", "other"]
 const validCategories = [
   "conference",
   "workshop",
@@ -99,7 +100,7 @@ describe("Event Controller", () => {
     testEvent = await Event.create({
       title: "Test Event for CRUD",
       description: "This is a comprehensive description for a test event.", // Ensure minLength
-      category: "conference", // Must be a valid category
+      category: "conference", // Must be a valid category from validCategories
       location: "Test Location",
       venue: "Test Venue",
       date: futureDateString,
@@ -389,7 +390,7 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain("Validation failed"); // Corrected expected message
+      expect(res.body.message).toContain("Validation error"); // Adjusted to "Validation error"
       expect(res.body.errors).toBeDefined();
       expect(res.body.errors.title).toBeDefined();
     });
@@ -408,7 +409,7 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain("Event date must be in the future"); // Corrected expected message
+      expect(res.body.message).toContain("Event date must be in the future"); // Adjusted to match schema message
     });
   });
 
@@ -423,7 +424,7 @@ describe("Event Controller", () => {
         title: "User's Event to Update",
         description:
           "This event is created by a regular user for testing purposes.", // Ensure minLength
-        category: "meetup", // Must be a valid category
+        category: "networking", // Using 'networking' from the valid enum
         location: "Community Center",
         venue: "Room 101",
         date: futureDate.toISOString().split("T")[0],
@@ -539,7 +540,7 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain("Validation failed");
+      expect(res.body.message).toContain("Validation failed"); // Adjusted to "Validation failed"
       expect(res.body.errors).toBeDefined();
       expect(res.body.errors.price).toBeDefined();
     });

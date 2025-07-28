@@ -32,13 +32,10 @@ const validCategories = [
   "conference",
   "workshop",
   "seminar",
-  "music",
+  "concert",
   "sports",
-  "tech",
-  "entertainment",
-  "meetup",
   "exhibition",
-  "webinar",
+  "networking",
   "other",
 ];
 
@@ -147,7 +144,7 @@ describe("Event Controller", () => {
       await Event.create({
         title: "Music Fest",
         description: "A fantastic music festival with many bands playing live.", // Ensure minLength
-        category: "music", // Must be a valid category
+        category: "concert", // Using 'concert' from the valid enum
         location: "City Park",
         venue: "Open Field",
         date: futureDate.toISOString().split("T")[0],
@@ -161,13 +158,13 @@ describe("Event Controller", () => {
 
       const res = await request(app)
         .get("/api/events")
-        .query({ category: "music" })
+        .query({ category: "concert" }) // Query for 'concert'
         .expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.events.length).toBeGreaterThan(0);
       expect(
-        res.body.data.events.every((e: any) => e.category === "music")
+        res.body.data.events.every((e: any) => e.category === "concert")
       ).toBe(true);
     });
 
@@ -259,7 +256,7 @@ describe("Event Controller", () => {
       await Event.create({
         title: "Evening Show",
         description: "A captivating show happening in the evening.", // Ensure minLength
-        category: "entertainment", // Must be a valid category
+        category: "exhibition", // Using 'exhibition' from the valid enum
         location: "Theater",
         venue: "Main Stage",
         date: futureDate.toISOString().split("T")[0],
@@ -327,7 +324,7 @@ describe("Event Controller", () => {
     const newEventData = {
       title: "Brand New Event",
       description: "A newly created event with a detailed description.", // Ensure minLength
-      category: "webinar", // Must be a valid category
+      category: "workshop", // Using 'workshop' from the valid enum
       location: "Online",
       venue: "Zoom",
       date: new Date(new Date().setDate(new Date().getDate() + 10))
@@ -411,7 +408,7 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain("Event date cannot be in the past"); // Corrected expected message
+      expect(res.body.message).toContain("Event date must be in the future"); // Corrected expected message
     });
   });
 
@@ -700,7 +697,7 @@ describe("Event Controller", () => {
         {
           title: "Category Test 2",
           description: "Another test event for category filtering.", // Ensure minLength
-          category: "tech", // Must be a valid category
+          category: "networking", // Must be a valid category
           location: "Online",
           venue: "Web",
           date: futureDate.toISOString().split("T")[0],
@@ -719,7 +716,7 @@ describe("Event Controller", () => {
       expect(res.body.data.categories).toBeInstanceOf(Array);
       expect(res.body.data.categories).toContain("conference"); // From testEvent
       expect(res.body.data.categories).toContain("sports");
-      expect(res.body.data.categories).toContain("tech");
+      expect(res.body.data.categories).toContain("networking");
       expect(res.body.data.categories.length).toBeGreaterThanOrEqual(3);
     });
 

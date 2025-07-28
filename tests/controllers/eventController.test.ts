@@ -317,7 +317,7 @@ describe("Event Controller", () => {
       const res = await request(app).get("/api/events/invalid-id").expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toBe("Invalid event ID format");
+      expect(res.body.message).toBe("Invalid event ID format"); // This message comes from eventController's getEvent
     });
   });
 
@@ -391,9 +391,8 @@ describe("Event Controller", () => {
 
       expect(res.body.success).toBe(false);
       expect(res.body.message).toContain("Validation error"); // Adjusted to "Validation error"
-      // Removed specific error.title check as it might not be present in the response structure
-      // expect(res.body.errors).toBeDefined(); // This might be undefined depending on middleware
-      // expect(res.body.errors.title).toBeDefined();
+      expect(res.body.errors).toBeInstanceOf(Array); // Expect errors to be an array
+      expect(res.body.errors.length).toBeGreaterThan(0); // Expect at least one error message
     });
 
     it("should return 400 for event date in the past", async () => {
@@ -442,10 +441,21 @@ describe("Event Controller", () => {
       );
     });
 
+    // Ensure all required fields are present for PUT, as validateEvent is strict
     const updatedData = {
       title: "Updated Event Title",
       description: "Updated description with more details for the event.", // Ensure minLength
+      category: "conference", // Must be a valid category from your enum
+      location: "Updated Location",
+      venue: "Updated Venue",
+      date: new Date(new Date().setDate(new Date().getDate() + 15))
+        .toISOString()
+        .split("T")[0], // Future date
+      time: "19:00",
       price: 200,
+      totalSeats: 60,
+      availableSeats: 60,
+      imageUrl: "http://example.com/updated.jpg",
     };
 
     it("should update an event as admin", async () => {
@@ -513,11 +523,13 @@ describe("Event Controller", () => {
       const res = await request(app)
         .put("/api/events/invalid-id")
         .set("Authorization", `Bearer ${adminToken}`)
-        .send(updatedData)
+        .send(updatedData) // Send valid data to ensure ID format is the only issue
         .expect(400);
 
       expect(res.body.success).toBe(false);
       expect(res.body.message).toContain("Validation error"); // Adjusted to "Validation error"
+      expect(res.body.errors).toBeInstanceOf(Array); // Expect errors to be an array
+      expect(res.body.errors.length).toBeGreaterThan(0); // Expect at least one error message
     });
 
     it("should return 404 for non-existent event", async () => {
@@ -525,15 +537,15 @@ describe("Event Controller", () => {
       const res = await request(app)
         .put(`/api/events/${nonExistentId}`)
         .set("Authorization", `Bearer ${adminToken}`)
-        .send(updatedData)
-        .expect(404); // Expecting 404 Not Found
+        .send(updatedData) // Send valid data to ensure 404 is returned
+        .expect(404);
 
       expect(res.body.success).toBe(false);
       expect(res.body.message).toBe("Event not found");
     });
 
     it("should return 400 for invalid update data (validation error)", async () => {
-      const invalidUpdate = { price: -100 }; // Invalid price
+      const invalidUpdate = { ...updatedData, price: -100 }; // Invalid price, other fields valid
       const res = await request(app)
         .put(`/api/events/${testEvent._id}`)
         .set("Authorization", `Bearer ${adminToken}`)
@@ -541,9 +553,12 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain("Validation failed"); // Adjusted to "Validation failed"
-      expect(res.body.errors).toBeDefined();
-      expect(res.body.errors.price).toBeDefined();
+      expect(res.body.message).toContain("Validation error"); // Adjusted to "Validation error"
+      expect(res.body.errors).toBeInstanceOf(Array);
+      expect(res.body.errors.length).toBeGreaterThan(0);
+      expect(res.body.errors[0]).toContain(
+        '"price" must be greater than or equal to 0'
+      ); // Specific Joi message
     });
   });
 
@@ -661,7 +676,7 @@ describe("Event Controller", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toBe("Invalid event ID format");
+      expect(res.body.message).toBe("Invalid event ID format"); // This message comes from eventController's deleteEvent
     });
 
     it("should return 404 for non-existent event", async () => {

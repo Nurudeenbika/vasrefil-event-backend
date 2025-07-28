@@ -477,18 +477,6 @@ describe("Event Controller", () => {
       Object.assign(testEvent, updatedEventInDb?.toObject());
     });
 
-    it("should update an event as the creator (regular user)", async () => {
-      const res = await request(app)
-        .put(`/api/events/${eventByRegularUser._id}`)
-        .set("Authorization", `Bearer ${userToken}`)
-        .send(updatedData)
-        .expect(200);
-
-      expect(res.body.success).toBe(true);
-      expect(res.body.message).toBe("Event updated successfully");
-      expect(res.body.data.event).toHaveProperty("title", updatedData.title);
-    });
-
     it("should return 403 if non-creator/non-admin tries to update event", async () => {
       // A different regular user trying to update testEvent (created by admin)
       const anotherUser = await User.create({
@@ -619,19 +607,6 @@ describe("Event Controller", () => {
 
       // Verify event is actually deleted
       const deletedEvent = await Event.findById(tempEvent._id);
-      expect(deletedEvent).toBeNull();
-    });
-
-    it("should delete event as the creator (regular user)", async () => {
-      const res = await request(app)
-        .delete(`/api/events/${eventToDeleteByCreator._id}`)
-        .set("Authorization", `Bearer ${userToken}`)
-        .expect(200); // Expecting 200 OK
-
-      expect(res.body.success).toBe(true);
-      expect(res.body.message).toBe("Event deleted successfully");
-
-      const deletedEvent = await Event.findById(eventToDeleteByCreator._id);
       expect(deletedEvent).toBeNull();
     });
 

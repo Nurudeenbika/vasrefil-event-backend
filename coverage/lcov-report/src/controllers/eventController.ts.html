@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">85.86% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>69/92</span>
+                <span class='fraction'>79/92</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">43.58% </span>
+                <span class="strong">51.28% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>17/39</span>
+                <span class='fraction'>20/39</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.28% </span>
+                <span class="strong">84.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>60/83</span>
+                <span class='fraction'>70/83</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -495,34 +495,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -532,7 +526,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -780,31 +780,31 @@ export const createEvent = async (req: AuthRequest, res: Response) =&gt; {
   }
 };
 &nbsp;
-export const updateEvent = <span class="fstat-no" title="function not covered" >async </span>(req: AuthRequest, res: Response) =&gt; {
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
+export const updateEvent = async (req: AuthRequest, res: Response) =&gt; {
+  try {
+    const { id } = req.params;
 &nbsp;
     // Validate if the ID is a valid MongoDB ObjectId
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!mongoose.Types.ObjectId.isValid(id)) {</span>
-<span class="cstat-no" title="statement not covered" >      return res.status(400).json({</span>
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
         success: false,
         message: "Invalid event ID format",
       });
     }
 &nbsp;
-    const event = <span class="cstat-no" title="statement not covered" >await Event.findById(id);</span>
+    const event = await Event.findById(id);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!event) {</span>
-<span class="cstat-no" title="statement not covered" >      return res.status(404).json({</span>
+    if (!event) {
+      return res.status(404).json({
         success: false,
         message: "Event not found",
       });
     }
 &nbsp;
     // Check if user is the creator or admin
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (</span>
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (
       event.createdBy.toString() !== req.user?.id &amp;&amp;
-      req.user?.role !== "admin"
+<span class="branch-1 cbranch-no" title="branch not covered" >      req.user?.role !== "admin"</span>
     ) {
 <span class="cstat-no" title="statement not covered" >      return res.status(403).json({</span>
         success: false,
@@ -812,13 +812,13 @@ export const updateEvent = <span class="fstat-no" title="function not covered" >
       });
     }
 &nbsp;
-    const updatedEvent = <span class="cstat-no" title="statement not covered" >await Event.findByIdAndUpdate(</span>
+    const updatedEvent = await Event.findByIdAndUpdate(
       id,
       { ...req.body },
       { new: true, runValidators: true }
     ).populate("createdBy", "name email");
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    res.json({</span>
+    res.json({
       success: true,
       message: "Event updated successfully",
       data: { event: updatedEvent },
@@ -928,7 +928,7 @@ export const getEventLocations = async (req: Request, res: Response) =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-28T09:26:54.105Z
+                at 2025-07-28T09:56:47.109Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

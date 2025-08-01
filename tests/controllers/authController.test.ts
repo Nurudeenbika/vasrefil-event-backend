@@ -8,8 +8,8 @@ import {
 import User from "../../src/models/User";
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import { AuthRequest } from "../../src/types"; // Import AuthRequest type
-import mongoose from "mongoose"; // Import mongoose for ObjectId
+import { AuthRequest } from "../../src/types";
+import mongoose from "mongoose";
 
 // Mock the entire User module and jsonwebtoken
 jest.mock("../../src/models/User", () => {

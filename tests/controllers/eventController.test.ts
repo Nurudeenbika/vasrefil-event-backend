@@ -7,10 +7,6 @@ import Event from "../../src/models/Event";
 import User from "../../src/models/User";
 import Booking from "../../src/models/Booking"; // Ensure Booking model is imported for setup/teardown
 
-// IMPORTANT: This mock must be at the very top to ensure it's applied before
-// any modules that depend on mongoose are loaded (like your models).
-// This workaround addresses the "TypeError: mongoose_1.Schema is not a constructor"
-// by ensuring Schema is correctly exposed as a constructor from the mocked mongoose.
 jest.mock("mongoose", () => {
   const actualMongoose = jest.requireActual("mongoose");
   return {
@@ -25,9 +21,6 @@ jest.mock("mongoose", () => {
   };
 });
 
-// Define valid categories based on your Event model's schema enum
-// YOU MUST ENSURE THIS LIST EXACTLY MATCHES THE ENUM IN YOUR src/models/Event.ts
-// Based on your provided schema: ["conference", "workshop", "seminar", "concert", "sports", "exhibition", "networking", "other"]
 const validCategories = [
   "conference",
   "workshop",
@@ -71,8 +64,6 @@ describe("Event Controller", () => {
     await Event.deleteMany({});
     await Booking.deleteMany({}); // Assuming you have a Booking model
 
-    // Create an initial test event for GET, PUT, DELETE tests
-    // This event's properties will be modified by PUT tests, and then checked by GET locations
     adminUser = await User.create({
       name: "Admin User",
       email: "admin@test.com",

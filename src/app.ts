@@ -1,11 +1,11 @@
-import express from "express";
+import express, { Express } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import routes from "./routes";
 import errorHandler from "./middleware/errorHandler";
 
-const app = express();
+const app: Express = express();
 
 // Security middleware
 app.use(helmet());

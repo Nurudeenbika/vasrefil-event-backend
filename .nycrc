@@ -1,0 +1,17 @@
+{
+  "include": ["test/**/*.spec.ts"],
+  "exclude": [
+    "src/**/*.ts",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "dist/**",
+    "node_modules/**"
+  ],
+  "extension": [".ts"],
+  "reporter": ["text", "lcov", "html"],
+  "all": true,
+  "require": ["ts-node/register"],
+  "source-map": false,
+  "instrument": false,
+  "cache": false
+}
